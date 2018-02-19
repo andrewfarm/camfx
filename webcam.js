@@ -46,9 +46,10 @@ vec3 convolve(float kernel[9]) {\n\
 }\n\
 \n\
 void main() {\n\
-        vec3 color = texture(u_texture, v_tex_pos).rgb;\n\
+//        frag_color = texture(u_texture, v_tex_pos);\n\
+//        vec3 color = texture(u_texture, v_tex_pos).rgb;\n\
         vec3 outline = vec3(1.0) - (convolve(TOP_SOBEL) + convolve(LEFT_SOBEL));\n\
-        frag_color = vec4(color * outline.r, 1.0);\n\
+        frag_color = vec4(outline, 1.0);\n\
 }\n\
 ';
 
