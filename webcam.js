@@ -65,11 +65,6 @@ if (gl) {
         camera = document.createElement('video')
         if (navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({video: true}).then(camSuccess).catch(camFailure);
-                shaderProgram = createProgram(gl, VERT, FRAG);
-                texture = initTexture(gl);
-                quadVAO = initQuadVAO(gl);
-                gl.viewport(0, 0, canvas.width, canvas.height);
-                requestAnimationFrame(render);
         } else {
                 alert("Requires Firefox");
         }
@@ -79,7 +74,19 @@ if (gl) {
 
 function camSuccess(stream) {
         camera.src = window.URL.createObjectURL(stream);
+        camera.addEventListener('loadedmetadata', function (e) {
+                canvasScale = Math.min(
+                        window.innerWidth / camera.videoWidth,
+                        window.innerHeight / camera.videoHeight);
+                canvas.width = camera.videoWidth * canvasScale;
+                canvas.height = camera.videoHeight * canvasScale;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+        }, false );
         camera.play();
+        shaderProgram = createProgram(gl, VERT, FRAG);
+        texture = initTexture(gl);
+        quadVAO = initQuadVAO(gl);
+        requestAnimationFrame(render);
 }
 
 function camFailure(error) {
