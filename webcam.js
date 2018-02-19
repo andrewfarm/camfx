@@ -20,13 +20,35 @@ const FRAG = '\
 precision mediump float;\n\
 \n\
 uniform sampler2D u_texture;\n\
+const float IDENTITY[9] = float[9](0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0);\n\
+const float TOP_SOBEL[9] = float[9](-1.0, -2.0, -1.0, 0.0, 0.0, 0.0, 1.0, 2.0, 1.0);\n\
+const float LEFT_SOBEL[9] = float[9](-1.0, 0.0, 1.0, -2.0, 0.0, 2.0, -1.0, 0.0, 1.0);\n\
 \n\
 in vec2 v_tex_pos;\n\
 \n\
 out vec4 frag_color;\n\
 \n\
+vec3 preprocess(vec3 color) {\n\
+        return vec3((0.2126 * color.r) + (0.7152 * color.g) + (0.0722 * color.b));\n\
+}\n\
+\n\
+vec3 convolve(float kernel[9]) {\n\
+        return abs(\n\
+                (kernel[0] * preprocess(textureOffset(u_texture, v_tex_pos, ivec2(-1, -1)).rgb)) +\n\
+                (kernel[1] * preprocess(textureOffset(u_texture, v_tex_pos, ivec2( 0, -1)).rgb)) +\n\
+                (kernel[2] * preprocess(textureOffset(u_texture, v_tex_pos, ivec2( 1, -1)).rgb)) +\n\
+                (kernel[3] * preprocess(textureOffset(u_texture, v_tex_pos, ivec2(-1,  0)).rgb)) +\n\
+                (kernel[4] * preprocess(textureOffset(u_texture, v_tex_pos, ivec2( 0,  0)).rgb)) +\n\
+                (kernel[5] * preprocess(textureOffset(u_texture, v_tex_pos, ivec2( 1,  0)).rgb)) +\n\
+                (kernel[6] * preprocess(textureOffset(u_texture, v_tex_pos, ivec2(-1,  1)).rgb)) +\n\
+                (kernel[7] * preprocess(textureOffset(u_texture, v_tex_pos, ivec2( 0,  1)).rgb)) +\n\
+                (kernel[8] * preprocess(textureOffset(u_texture, v_tex_pos, ivec2( 1,  1)).rgb)));\n\
+}\n\
+\n\
 void main() {\n\
-        frag_color = texture(u_texture, v_tex_pos);\n\
+        vec3 color = texture(u_texture, v_tex_pos).rgb;\n\
+        vec3 outline = vec3(1.0) - (convolve(TOP_SOBEL) + convolve(LEFT_SOBEL));\n\
+        frag_color = vec4(color * outline.r, 1.0);\n\
 }\n\
 ';
 
